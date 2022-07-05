@@ -1,25 +1,50 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "./index.css";
+import Navbar from "../components/navbar";
+import Pokedex from "../components/pokedex";
+import { getPokemonData, getPokemons } from "../api";
 
-function App() {
+const { useState, useEffect } = React;
+
+export default function App() {
+  const [pokemons, setPokemons] = useState([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const fetchPokemons = async () => {
+    try {
+      setLoading(true);
+      const data = await getPokemons(20, 20 * page);
+      const promises = data.results.map(async (pokemon) => {
+        return await getPokemonData(pokemon.url);
+      });
+      const results = await Promise.all(promises);
+      setPokemons(results);
+      setLoading(false);
+      setTotal(Math.ceil(data.count / 20));
+    } catch (err) {}
+  };
+
+  useEffect(() => {
+    fetchPokemons();
+  }, [page]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <Navbar />
+      <div className="App">
+        {loading ? (
+          <div>Cargando pokemones</div>
+        ) : (
+          <Pokedex
+            pokemons={pokemons}
+            page={page}
+            setPage={setPage}
+            total={total}
+          />
+        )}
+      </div>
     </div>
   );
 }
-
-export default App;
