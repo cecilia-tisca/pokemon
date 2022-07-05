@@ -1,29 +1,50 @@
-import { useEffect, useRef, useState } from "react";
-import "./index.js";
+import React from "react";
+import "./index.css";
+import Navbar from "../components/navbar";
+import Pokedex from "../components/pokedex";
+import { getPokemonData, getPokemons } from "../api";
+
+const { useState, useEffect } = React;
 
 export default function App() {
-const [pokemons, setPokemons] = useState([])
+  const [pokemons, setPokemons] = useState([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() =>{
-    listPokemons()
-  },[])
-   
-  async function listPokemons(){
-    const result = await fetch('https://pokeapi.co/api/v2/pokemon?limit=20')
-    const data = await result.json();
-    console.log(data)
-    setPokemons(data.result)
-  }
+  const fetchPokemons = async () => {
+    try {
+      setLoading(true);
+      const data = await getPokemons(20, 20 * page);
+      const promises = data.results.map(async (pokemon) => {
+        return await getPokemonData(pokemon.url);
+      });
+      const results = await Promise.all(promises);
+      setPokemons(results);
+      setLoading(false);
+      setTotal(Math.ceil(data.count / 20));
+    } catch (err) {}
+  };
 
+  useEffect(() => {
+    fetchPokemons();
+  }, [page]);
 
   return (
-    <div className="App">
-      <h1>Pokemón</h1>
-          <ul>
-            {
-              (pokemons || []).map((pokemon)=><li key={pokemon.name}>{pokemon.name}</li>)
-            }
-          </ul>
+    <div>
+      <Navbar />
+      <div className="App">
+        {loading ? (
+          <div>Cargando pokemones</div>
+        ) : (
+          <Pokedex
+            pokemons={pokemons}
+            page={page}
+            setPage={setPage}
+            total={total}
+          />
+        )}
+      </div>
     </div>
   );
 }
