@@ -1,8 +1,8 @@
 import React from "react";
 import "./index.css";
-import Navbar from "../components/navbar";
-import Pokedex from "../components/pokedex";
-import { getPokemonData, getPokemons } from "../api";
+import Navbar from "./components/navbar";
+import Pokedex from "./components/pokedex";
+import { getPokemonData, getPokemons } from "./api";
 
 const { useState, useEffect } = React;
 
